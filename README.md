@@ -4,6 +4,8 @@
 
 [COLE AQUI O LINK] do board (Trello ou GitHub Projects).
 
+https://github.com/users/AndersonBonoso/projects/1
+
 Demo com \*\*Flask\*\* (API) e \*\*MySQL 5.7\*\* orquestrados por \*\*Docker Compose\*\*.
 
 
