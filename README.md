@@ -1,6 +1,8 @@
 \# Docker + Flask + MySQL (2 containers)
 
+[COLE AQUI O LINK] do vídeo (quando gravar).
 
+[COLE AQUI O LINK] do board (Trello ou GitHub Projects).
 
 Demo com \*\*Flask\*\* (API) e \*\*MySQL 5.7\*\* orquestrados por \*\*Docker Compose\*\*.
 
