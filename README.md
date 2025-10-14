@@ -59,7 +59,7 @@ Observação: sem um banco MySQL acessível a aplicação retornará 503 no endp
 
 [COLE AQUI O LINK] do vídeo (quando gravar).
 
-[COLE AQUI O LINK] do board (Trello ou GitHub Projects).
+Link do board:
 
 https://github.com/users/AndersonBonoso/projects/1
 
