@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Entrar · Auth Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6 col-xl-5">
+        <div class="card shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+            <h2 class="h3 mb-4">Entrar</h2>
+
+            <form method="post" novalidate>
+            <div class="mb-3">
+                <label for="user_or_email" class="form-label">E-mail ou username</label>
+                <input type="text" class="form-control" id="user_or_email" name="user_or_email"
+                    value="{{ user_or_email or '' }}" autocomplete="username" required />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Senha</label>
+                <div class="input-group password-toggle">
+                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" />
+                <button type="button" class="btn btn-outline-secondary" data-toggle-target="#password" aria-label="Mostrar/ocultar senha">
+                    <svg class="icon-eye" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 110-10 5 5 0 010 10z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                </button>
+                </div>
+            </div>
+
+            <div class="d-grid mt-3">
+                <button type="submit" class="btn btn-primary">Entrar</button>
+            </div>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">Ainda não tem conta?</span>
+                <a href="{{ url_for('signup') }}">Criar conta</a>
+            </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body_extra %}
+<script>
+    document.querySelectorAll('.password-toggle [data-toggle-target]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+        const sel = btn.getAttribute('data-toggle-target');
+        const input = document.querySelector(sel);
+        if (!input) return;
+        input.type = (input.type === 'password') ? 'text' : 'password';
+        });
+    });
+</script>
+{% endblock %}

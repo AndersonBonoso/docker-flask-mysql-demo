@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% block title %}Criar conta · Auth Demo{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Banner flutuante do username (não altera o fluxo do layout) */
+    .username-wrapper { position: relative; }
+    .floating-alert {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        transform: translateY(calc(-100% - .5rem)); /* fica logo acima do input */
+        z-index: 5;
+        margin: 0;            /* sem margem para não mudar altura do grid */
+        pointer-events: none; /* clique passa "através" do alerta */
+    }
+    /* Permite clicar em links dentro do alerta (ex.: aplicar sugestão) */
+    .floating-alert a { pointer-events: auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <div class="card shadow-sm rounded-4">
+        <div class="card-body p-4 p-md-5">
+            <h2 class="h3 mb-4">Criar conta</h2>
+
+            <form id="signupForm" method="post" novalidate>
+            <!-- Linha 1: Nome completo / Username -->
+            <div class="row g-3">
+                <div class="col-md-6">
+                <label for="full_name" class="form-label">Nome completo</label>
+                <input type="text" class="form-control" id="full_name" name="full_name"
+                        value="{{ full_name or '' }}" required autocomplete="name" />
+                <div class="form-text">Seu nome e sobrenome.</div>
+                </div>
+
+                <div class="col-md-6">
+                <label for="username" class="form-label">Username</label>
+
+                <!-- Wrapper relativo + banner absoluto para não empurrar o input -->
+                <div class="username-wrapper">
+                    <div id="usernameBanner" class="alert d-none py-2 px-3 floating-alert" role="alert" aria-live="polite"></div>
+
+                    <input type="text" class="form-control" id="username" name="username"
+                        placeholder="Como deseja ser chamado"
+                        value="{{ username or '' }}" required autocapitalize="none" autocomplete="username" />
+                </div>
+
+                <div class="form-text" id="usernameHelp">Use letras, números, ponto ou underline.</div>
+                <div class="invalid-feedback">Informe um username.</div>
+                </div>
+            </div>
+
+            <!-- Linha 2: E-mail / Telefone com DDI -->
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                <label for="email" class="form-label">E-mail</label>
+                <input type="email" class="form-control" id="email" name="email"
+                        value="{{ email or '' }}" required autocomplete="email" />
+                <div class="invalid-feedback">Informe um e-mail válido.</div>
+                </div>
+
+                <div class="col-md-6">
+                <label for="phoneLocal" class="form-label">Telefone (DDI+DDD)</label>
+                <div class="input-group" id="phoneGroup">
+                    <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" id="ddiBtn">
+                    <span id="ddiFlag" class="fi fi-br" data-cc="br"></span>
+                    <span id="ddiCode">+55</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end overflow-auto" style="max-height: 320px;" id="ddiList"></ul>
+                    <input type="text" class="form-control" id="phoneLocal" inputmode="numeric"
+                        placeholder="DDD 9-9999-9999" value="{{ phone or '' }}">
+                </div>
+                <div class="form-text">Opcional. Ex.: +55 11 9-9999-9999</div>
+                <!-- Campo real enviado ao backend (E.164) -->
+                <input type="hidden" name="phone" id="phoneE164">
+                </div>
+            </div>
+
+            <!-- Senha e Confirmar -->
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                <label for="password" class="form-label">Senha</label>
+                <div class="input-group password-toggle">
+                    <input type="password" class="form-control" id="password" name="password" required
+                        aria-describedby="passwordHelp strengthLabel" autocomplete="new-password" />
+                    <button type="button" class="btn btn-outline-secondary" data-toggle-target="#password" aria-label="Mostrar/ocultar senha">
+                    <svg class="icon-eye" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 110-10 5 5 0 010 10z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                    </button>
+                </div>
+                <div class="progress mt-2" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-live="polite">
+                    <div class="progress-bar" id="strengthBar" style="width: 0%"></div>
+                </div>
+                <div class="small mt-1" id="strengthLabel">Força: —</div>
+                <div class="form-text" id="passwordHelp">Mín. 8, com maiúscula, minúscula, dígito e caractere especial.</div>
+                </div>
+
+                <div class="col-md-6">
+                <label for="confirm_password" class="form-label">Confirmar senha</label>
+                <div class="input-group password-toggle">
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                        required autocomplete="new-password" />
+                    <button type="button" class="btn btn-outline-secondary" data-toggle-target="#confirm_password" aria-label="Mostrar/ocultar senha">
+                    <svg class="icon-eye" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 110-10 5 5 0 010 10z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
+                    </button>
+                </div>
+                <div class="invalid-feedback">Confirmação não confere.</div>
+                </div>
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary" id="btnSubmit">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="btnSpinner" role="status" aria-hidden="true"></span>
+                Criar conta
+                </button>
+            </div>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">Já tem conta?</span>
+                <a href="{{ url_for('login') }}">Entrar</a>
+            </div>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block body_extra %}
+<script>
+/* ---------- UTIL ---------- */
+const debounce=(fn,wait=400)=>{let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait);};};
+const onlyDigits=(s)=>(s||"").replace(/\D/g,"");
+
+/* ---------- USERNAME (banner flutuante) ---------- */
+const usernameEl=document.querySelector('#username');
+const usernameBanner=document.querySelector('#usernameBanner');
+
+function showUserBanner(kind,html){
+    const klass={info:'alert-info',success:'alert-success',danger:'alert-danger',warning:'alert-warning'}[kind]||'alert-info';
+    usernameBanner.className=`alert ${klass} py-2 px-3 floating-alert`;
+    usernameBanner.innerHTML=html;
+    usernameBanner.classList.remove('d-none');
+}
+function clearUserBanner(){usernameBanner.className='alert d-none py-2 px-3 floating-alert';usernameBanner.textContent='';}
+
+async function checkUsername(u){
+    if(!u){clearUserBanner();return;}
+    showUserBanner('info','Verificando…');
+    try{
+        const r=await fetch(`/api/check-username?u=${encodeURIComponent(u)}`);
+        const data=await r.json();
+        if(data.available){
+        showUserBanner('success','<strong>Disponível.</strong> Ótima escolha!');
+        }else{
+        if(data.suggestion){
+            showUserBanner('danger',`Indisponível. Sugestão: <a href="#" id="applySuggestion" class="alert-link">${data.suggestion}</a>`);
+            const a=document.getElementById('applySuggestion');
+            if(a){a.onclick=e=>{e.preventDefault();usernameEl.value=data.suggestion;checkUsername(data.suggestion);};}
+        }else{
+            showUserBanner('danger','Indisponível. Tente variações com números.');
+        }
+        }
+    }catch{showUserBanner('warning','Falha ao verificar. Tente novamente.');}
+}
+usernameEl?.addEventListener('input',debounce(e=>checkUsername(e.target.value)));
+
+/* ---------- DDI + BANDEIRAS (flag-icons) ---------- */
+const countries=[
+    { name:'Brasil',           cc:'br', ddi:'55',  mask:'BR', priority:1 },
+    { name:'Estados Unidos',   cc:'us', ddi:'1',   mask:'US', priority:1 },
+    { name:'Portugal',         cc:'pt', ddi:'351', mask:'PT', priority:1 },
+    { name:'Espanha',          cc:'es', ddi:'34',  mask:'ES', priority:1 },
+    { name:'Alemanha',         cc:'de', ddi:'49' },
+    { name:'Argentina',        cc:'ar', ddi:'54' },
+    { name:'Bolívia',          cc:'bo', ddi:'591' },
+    { name:'Canadá',           cc:'ca', ddi:'1',   mask:'US' },
+    { name:'Chile',            cc:'cl', ddi:'56' },
+    { name:'China',            cc:'cn', ddi:'86' },
+    { name:'Colômbia',         cc:'co', ddi:'57' },
+    { name:'França',           cc:'fr', ddi:'33' },
+    { name:'Itália',           cc:'it', ddi:'39' },
+    { name:'Japão',            cc:'jp', ddi:'81' },
+    { name:'México',           cc:'mx', ddi:'52' },
+    { name:'Paraguai',         cc:'py', ddi:'595' },
+    { name:'Peru',             cc:'pe', ddi:'51' },
+    { name:'Reino Unido',      cc:'gb', ddi:'44' },
+    { name:'Uruguai',          cc:'uy', ddi:'598' },
+].sort((a,b)=>((b.priority||0)-(a.priority||0))||a.name.localeCompare(b.name,'pt-BR'));
+
+const ddiList=document.querySelector('#ddiList');
+const ddiFlag=document.querySelector('#ddiFlag');
+const ddiCode=document.querySelector('#ddiCode');
+const phoneLocal=document.querySelector('#phoneLocal');
+const phoneE164=document.querySelector('#phoneE164');
+
+function setFlag(cc){ ddiFlag.className=`fi fi-${cc}`; ddiFlag.dataset.cc=cc; }
+
+function renderDDI(){
+    ddiList.innerHTML="";
+    countries.forEach(c=>{
+        const li=document.createElement('li');
+        const a=document.createElement('a');
+        a.className='dropdown-item d-flex align-items-center gap-2';
+        a.href='#';
+        a.innerHTML=`<span class="fi fi-${c.cc}"></span><span class="flex-grow-1">${c.name}</span><span class="text-muted">+${c.ddi}</span>`;
+        a.onclick=e=>{
+        e.preventDefault();
+        setFlag(c.cc);
+        ddiCode.textContent=`+${c.ddi}`;
+        phoneLocal.placeholder=maskPlaceholderFor(c.mask||'GEN');
+        phoneLocal.value=applyMaskFor(c.mask||'GEN',onlyDigits(phoneLocal.value));
+        phoneLocal.dataset.mask=c.mask||'GEN';
+        phoneLocal.dataset.ddi=c.ddi;
+        };
+        li.appendChild(a);
+        ddiList.appendChild(li);
+    });
+    const br=countries.find(c=>c.cc==='br');
+    setFlag('br'); ddiCode.textContent=`+${br.ddi}`;
+    phoneLocal.dataset.mask=br.mask; phoneLocal.dataset.ddi=br.ddi;
+    phoneLocal.placeholder=maskPlaceholderFor(br.mask);
+}
+renderDDI();
+
+/* ---------- MÁSCARAS DE TELEFONE ---------- */
+function maskPlaceholderFor(kind){
+    switch(kind){
+        case 'BR': return 'DDD 9-9999-9999';
+        case 'US': return '(DDD) NNN-NNNN';
+        case 'PT': return 'DDD NNN NNN';
+        case 'ES': return 'DDD NNN NNN';
+        default: return 'Telefone';
+    }
+}
+function applyMaskFor(kind,digits){
+    if(!digits) return '';
+    let d=digits;
+    if(kind==='BR'){
+        d=d.slice(0,11);
+        const ddd=d.slice(0,2);
+        const p1=d.slice(2,3);
+        const p2=d.slice(3,7);
+        const p3=d.slice(7,11);
+        return [ddd, p1&&p1+'-'+p2, p3].filter(Boolean).join(' ');
+    }else if(kind==='US'){
+        d=d.slice(0,10);
+        const ddd=d.slice(0,3);
+        const p1=d.slice(3,6);
+        const p2=d.slice(6,10);
+        if(d.length<=3) return `(${ddd}`;
+        if(d.length<=6) return `(${ddd}) ${p1}`;
+        return `(${ddd}) ${p1}-${p2}`;
+    }else if(kind==='PT'||kind==='ES'){
+        d=d.slice(0,9);
+        const ddd=d.slice(0,3);
+        const p1=d.slice(3,6);
+        const p2=d.slice(6,9);
+        return [ddd,p1,p2].filter(Boolean).join(' ');
+    }
+    return digits;
+}
+phoneLocal.addEventListener('input',e=>{
+    const kind=phoneLocal.dataset.mask||'GEN';
+    const raw=onlyDigits(e.target.value);
+    e.target.value=applyMaskFor(kind,raw);
+});
+
+/* ---------- Submit: compõe E.164 + UX ---------- */
+document.querySelector('#signupForm').addEventListener('submit',e=>{
+    const pass=document.querySelector('#password').value;
+    const conf=document.querySelector('#confirm_password').value;
+    if(conf!==pass){
+        e.preventDefault();
+        bootstrap.Toast.getOrCreateInstance(createToast('As senhas não conferem.','danger')).show();
+        return false;
+    }
+    const ddi=phoneLocal.dataset.ddi||'55';
+    const digits=onlyDigits(phoneLocal.value);
+    phoneE164.value=digits.length>0?`+${ddi}${digits}`:'';
+
+    document.querySelector('#btnSpinner').classList.remove('d-none');
+    document.querySelector('#btnSubmit').setAttribute('disabled','disabled');
+});
+
+/* ---------- Toggle de senha (olho) ---------- */
+document.querySelectorAll('.password-toggle [data-toggle-target]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+        const sel=btn.getAttribute('data-toggle-target');
+        const input=document.querySelector(sel);
+        if(!input) return;
+        input.type=(input.type==='password')?'text':'password';
+    });
+});
+
+/* ---------- Toast helper ---------- */
+function createToast(msg,kind='info'){
+    const area=document.getElementById('toastArea');
+    const div=document.createElement('div');
+    div.className=`toast align-items-center text-white bg-${kind} border-0`;
+    div.role='alert'; div.ariaLive='assertive'; div.ariaAtomic='true';
+    div.innerHTML=`<div class="d-flex">
+        <div class="toast-body fw-medium">${msg}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+        </div>`;
+    area.appendChild(div);
+    return div;
+}
+</script>
+{% endblock %}

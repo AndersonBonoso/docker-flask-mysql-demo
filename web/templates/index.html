@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Bem-vindo 👋</h1>
+        <p class="text-secondary mb-4">
+          Este é um demo de autenticação com Flask + MySQL (Docker). Crie sua conta ou entre para acessar o dashboard.
+        </p>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('signup') }}" class="btn btn-primary">Criar conta</a>
+          <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">Entrar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
