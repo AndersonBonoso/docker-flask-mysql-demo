@@ -57,7 +57,9 @@ Observação: sem um banco MySQL acessível a aplicação retornará 503 no endp
 - As credenciais padrão estão em `docker-compose.yml` (usuário `app`, senha `app123`, DB `teste`).
 \# Docker + Flask + MySQL (2 containers)
 
-[COLE AQUI O LINK] do vídeo (quando gravar).
+Link do vídeo Demo: 
+
+https://www.loom.com/share/2821cf2549444bc88ca77c8f045dc9dd?sid=85c73f56-a83a-4e1e-94ea-c0061d03de1c
 
 Link do board:
 
