@@ -59,7 +59,7 @@ Observação: sem um banco MySQL acessível a aplicação retornará 503 no endp
 
 Link do vídeo Demo: 
 
-https://www.loom.com/share/2821cf2549444bc88ca77c8f045dc9dd?sid=85c73f56-a83a-4e1e-94ea-c0061d03de1c
+[https://www.loom.com/share/2821cf2549444bc88ca77c8f045dc9dd?sid=85c73f56-a83a-4e1e-94ea-c0061d03de1c](https://www.loom.com/share/7308429408e3426ba00cea961452794d)
 
 Link do board:
 
