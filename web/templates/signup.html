@@ -79,6 +79,32 @@
                 </div>
             </div>
 
+            <!-- Linha 3: Data de nascimento / Gênero -->
+            <div class="row g-3 mt-1">
+                <div class="col-md-6">
+                    <label for="birth_date" class="form-label">Data de nascimento</label>
+                    <input
+                        type="date"
+                        class="form-control"
+                        id="birth_date"
+                        name="birth_date"
+                        value="{{ birth_date or '' }}"
+                    >
+                    <div class="form-text">Opcional, formato dia/mês/ano.</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="gender" class="form-label">Gênero</label>
+                    <select class="form-select" id="gender" name="gender">
+                        <option value="" {% if not gender %}selected{% endif %}>Selecione…</option>
+                        <option value="M" {% if gender == 'M' %}selected{% endif %}>Masculino</option>
+                        <option value="F" {% if gender == 'F' %}selected{% endif %}>Feminino</option>
+                        <option value="O" {% if gender == 'O' %}selected{% endif %}>Outros</option>
+                    </select>
+                    <div class="form-text">Opcional. Se não informar, será considerado “Outros”.</div>
+                </div>
+            </div>
+
             <!-- Senha e Confirmar -->
             <div class="row g-3 mt-1">
                 <div class="col-md-6">
@@ -134,7 +160,8 @@
 const debounce=(fn,wait=400)=>{let t;return(...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait);};};
 const onlyDigits=(s)=>(s||"").replace(/\D/g,"");
 
-/* ---------- USERNAME (banner flutuante) ---------- */
+<!-- resto do JS original mantido 100% igual -->
+
 const usernameEl=document.querySelector('#username');
 const usernameBanner=document.querySelector('#usernameBanner');
 

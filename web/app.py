@@ -1,6 +1,6 @@
 ﻿import os
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
 from functools import wraps
 from pathlib import Path
 from typing import Optional
@@ -86,13 +86,15 @@ def init_db():
         username VARCHAR(50) NOT NULL,
         email VARCHAR(120) NOT NULL,
         phone_e164 VARCHAR(20) NULL,
+        gender ENUM('M','F','O') NOT NULL DEFAULT 'O',
+        birth_date DATE NULL,
         password_hash VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         UNIQUE KEY uq_users_username (username),
         UNIQUE KEY uq_users_email (email)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-      COLLATE=utf8mb4_unicode_ci;
+    COLLATE=utf8mb4_unicode_ci;
     """
     conn = get_conn()
     try:
@@ -139,11 +141,11 @@ def normalize_phone_e164(phone_raw: str) -> Optional[str]:
     Normaliza para E.164 sem libs externas.
 
     Regras:
-      - remove tudo que não for dígito
-      - se começar com '00', vira '+'
-      - se começar com '0', remove o 0
-      - prefixa '+' se não tiver
-      - valida tamanho 8..15 dígitos
+        - remove tudo que não for dígito
+        - se começar com '00', vira '+' (remove 00)
+        - se começar com '0', remove o 0
+        - prefixa '+' se não tiver
+        - valida tamanho 8..15 dígitos
     """
     if not phone_raw:
         return None
@@ -195,10 +197,13 @@ def signup():
     username = (request.form.get("username") or "").strip()
     email = (request.form.get("email") or "").strip().lower()
     phone = (request.form.get("phone") or "").strip()
+    gender = (request.form.get("gender") or "").strip()
+    birth_date_raw = (request.form.get("birth_date") or "").strip()
     password = request.form.get("password") or ""
     confirm = request.form.get("confirm_password") or ""
 
     errors = []
+
     if not full_name:
         errors.append("Nome completo é obrigatório.")
     if not username:
@@ -213,12 +218,27 @@ def signup():
             "(mín. 8, 1 maiúscula, 1 minúscula, 1 dígito, 1 especial)."
         )
 
+    # normaliza telefone
     phone_e164 = normalize_phone_e164(phone) if phone else None
     if phone and phone_e164 is None:
         errors.append(
             "Telefone inválido. Informe DDI+DDD e número "
             "(ex.: +5511912345678)."
         )
+
+    # valida gênero (M, F ou O; se vier vazio, cair para 'O')
+    if gender not in ("M", "F", "O", ""):
+        errors.append("Gênero inválido.")
+    gender_db = gender if gender in ("M", "F", "O") else "O"
+
+    # valida data de nascimento (opcional)
+    birth_date = None
+    if birth_date_raw:
+        try:
+            # input type date envia yyyy-mm-dd
+            birth_date = datetime.strptime(birth_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            errors.append("Data de nascimento inválida.")
 
     if errors:
         for e in errors:
@@ -229,6 +249,8 @@ def signup():
             username=username,
             email=email,
             phone=phone,
+            gender=gender,
+            birth_date=birth_date_raw,
         )
 
     pw_hash = generate_password_hash(password)
@@ -236,12 +258,29 @@ def signup():
     conn = get_conn()
     try:
         with conn.cursor() as cur:
-            sql = (
-                "INSERT INTO users "
-                "(full_name, username, email, phone_e164, password_hash) "
-                "VALUES (%s, %s, %s, %s, %s)"
+            sql = """
+                INSERT INTO users (
+                    full_name,
+                    username,
+                    email,
+                    phone_e164,
+                    gender,
+                    birth_date,
+                    password_hash
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            cur.execute(
+                sql,
+                (
+                    full_name,
+                    username,
+                    email,
+                    phone_e164,
+                    gender_db,
+                    birth_date,
+                    pw_hash,
+                ),
             )
-            cur.execute(sql, (full_name, username, email, phone_e164, pw_hash))
         flash("Conta criada com sucesso! Faça login.", "success")
         return redirect(url_for("login"))
     except IntegrityError as ex:
@@ -267,6 +306,8 @@ def signup():
                 username=username,
                 email=email,
                 phone=phone,
+                gender=gender,
+                birth_date=birth_date_raw,
             )
         flash("Erro ao criar conta.", "danger")
         return render_template(
@@ -275,6 +316,8 @@ def signup():
             username=username,
             email=email,
             phone=phone,
+            gender=gender,
+            birth_date=birth_date_raw,
         )
     finally:
         conn.close()
@@ -342,11 +385,7 @@ def logout():
 
 @app.get("/api/check-username")
 def api_check_username():
-    """
-    Exemplo: /api/check-username?u=anderson
-    Retorno: {"available": true/false,
-                "suggestion": "anderson1234" (opcional)}
-    """
+
     username = (request.args.get("u") or "").strip()
     if not username:
         return jsonify({"available": False, "error": "username vazio"}), 400
@@ -382,10 +421,7 @@ def api_check_username():
 
 
 def _init_on_import() -> None:
-    """
-    Inicializa a tabela users ao importar o módulo.
-    Inclui tentativas para aguardar o MySQL (containers).
-    """
+
     import sys
     import time
 
